@@ -1,0 +1,11 @@
+{
+  "name": "figma-react",
+  "id": "1014961192702277195",
+  "api": "1.0.0",
+  "main": "src/code.js",
+  "editorType": [
+    "figma",
+    "figjam"
+  ],
+  "ui": "src/ui.html"
+}

@@ -1,0 +1,252 @@
+<style>
+  /* width */
+  ::-webkit-scrollbar {
+    width: 3px;
+  }
+
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: #888;
+  }
+
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555;
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+  }
+
+  h2 {
+    border-bottom: 1px solid #000;
+    padding: 10px 15px;
+  }
+
+  input {
+    margin-top: 5px;
+    border: 1px solid #000;
+    padding: 10px 10px;
+    width: 215px !important;
+  }
+
+  .downloadForm p {
+    margin-top: 10px;
+  }
+
+  .downloadForm {
+    margin: 30px 0 0 15px;
+  }
+
+  .btn {
+    border-radius: 20px;
+    margin-right: 10px;
+    min-width: 130px;
+    cursor: pointer;
+  }
+
+  .primaryBtn {
+    padding: 10px 15px;
+    background: #000;
+    color: #fff;
+    border: 1px solid #000;
+  }
+
+  .secondaryBtn {
+    padding: 10px 15px;
+    background: #fff;
+    color: #000;
+    border: 1px solid #000;
+  }
+
+  .btnGroup {
+    margin-top: 45px;
+  }
+
+  .downloadForm p span {
+    float: left;
+    width: 200px;
+    margin-top: 15px;
+  }
+
+  textarea {
+    width: 96%;
+    height: 250px;
+    margin-top: 30px;
+    resize: none;
+    border: 1px solid #747676;
+    padding: 20px;
+  }
+
+  .marginTop20 {
+    margin-top: 20px;
+  }
+
+  .previewCopyCode {
+    position: relative;
+  }
+
+  .copyBtn {
+    position: absolute;
+    top: 30px;
+    right: 17px;
+    padding: 1px 5px;
+    font-size: 12px;
+    border: 1px solid #747676;
+    background: #f6f6f6;
+    cursor: pointer;
+  }
+</style>
+
+
+<div class="figmaUiWrapper">
+  <h2>Figma to VDS React</h2>
+  <div class="downloadForm">
+    <p><span>Enter Figma access token:</span> <input id="accessToken" type="text" placeholder="Access token"
+        value="230563-1015c945-4370-4300-ba34-de9eca0ef916"></p>
+    <p><span>Enter Figma design ID:</span> <input id="figmaId" type="text" placeholder="Figma ID"
+        value="c2eBqSdVwkqoB0Lf4dk4aR"></p>
+    <p><span>Enter component name:</span> <input id="componentName" type="text" placeholder="Component name"
+        value="App"></p>
+
+
+    <div class="btnGroup">
+      <button id="downloadReact" class="btn primaryBtn">Download Code</button>
+      <button id="codePreview" class="btn primaryBtn">Code preview</button>
+      <button id="cancel" class="btn secondaryBtn">Cancel</button>
+    </div>
+    <div class="previewCopyCode">
+      <button id="copyCode" class="copyBtn">Copy</button>
+      <textarea readonly id="codeContent"></textarea>
+    </div>
+    <button id="clearCode" class="btn primaryBtn marginTop20">Clear code</button>
+  </div>
+</div>
+
+
+
+<script>
+
+  // const FigmaAPIKey = "230563-1015c945-4370-4300-ba34-de9eca0ef916";
+  // const FigmaFileID = 'c2eBqSdVwkqoB0Lf4dk4aR';
+
+  const importStatements = "import React , { Component }  from 'react';\n";
+  const ImportData1 = {
+    Button: ["Button"],
+    Input: ["Input"],
+    Breadcrumbs: ["Breadcrumbs", "BreadcrumbItem"],
+    CheckboxGroup: ["CheckboxGroup"],
+    Table: ["Table,tr,td,thead,tbody"],
+    Text: ["Text"]
+  };
+  const constructedData = [];
+  var ImportDataString = JSON.stringify(ImportData1),
+      FigmaAPIKey = '', 
+      FigmaFileID = '', 
+      componentName = 'App', 
+      data, 
+      constructImportStatements = '', 
+      dependencies = '',
+      constructClasscode = '';
+  
+
+  document.getElementById('codePreview').onclick = () => {
+    FigmaAPIKey = document.getElementById('accessToken').value;
+    FigmaFileID = document.getElementById('figmaId').value;
+
+    componentName = document.getElementById('componentName').value;
+    if (componentName === '') {
+      componentName = "App";
+    }
+    fetch('https://api.figma.com/v1/files/' + FigmaFileID, {
+      method: 'GET',
+      headers: {
+        'X-Figma-Token': FigmaAPIKey
+      }
+    })
+      .then(function (response) {
+        return response.json();
+      })
+      .then(function (myJson) {
+        data = myJson;
+        CodeCreation(data);
+      })
+  }
+
+  function CodeCreation(data) {
+    layerData = data.document.children;
+    getAllLayers(layerData);
+    document.getElementById('codeContent').value = importStatements + constructImportStatements;
+  }
+  function getAllLayers(layerData) {
+    for (var i = 0; i < layerData.length; i++) {
+      compareVDSelementImports(layerData[i].name)
+    }
+    if (i >= layerData.length) {
+      if (layerData[0].children) {
+        getAllLayers(layerData[0].children);
+      }
+    }
+  }
+
+
+  function compareVDSelementImports(elementToCompareWithVDS) {
+    for (let key in ImportData1) 
+    {
+      if (elementToCompareWithVDS.includes("" + key)) 
+      {
+        for (var i = 0; i < ImportData1[key].length; i++) 
+        {
+          dependencies += (ImportData1[key][i] + ',');
+        }
+        var dependencies1 = '';
+        if (dependencies.includes(",")) 
+        {
+          dependencies1 = dependencies.split(',')[0].substring(0, dependencies.length - 1);
+        }
+        dependencies = dependencies.substring(0, dependencies.length - 1);
+        if (!constructImportStatements.includes(dependencies)) 
+        {
+          constructImportStatements += "import {" + dependencies + "} from '@vds/" + dependencies1.toLocaleLowerCase() + "';\n";
+          console.log(dependencies);
+        }
+        dependencies = '';
+      }
+    }
+  }
+
+  document.getElementById('downloadReact').onclick = () => {
+    document.getElementById("codePreview").click();
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(importStatements + constructImportStatements));
+    element.setAttribute('download', componentName + ".js");
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  }
+  document.getElementById('cancel').onclick = () => {
+    parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*')
+  }
+
+  document.getElementById('clearCode').onclick = () => {
+    document.getElementById('codeContent').value = '';
+    constructImportStatements = '';
+    dependencies = '';
+    dependencies1 = '';
+  }
+
+  document.getElementById('copyCode').onclick = () => {
+    var copyText = document.querySelector("#codeContent");
+    copyText.select();
+    document.execCommand("copy");
+  }
+</script>
+
+<!-- <div id="react-page"></div> -->

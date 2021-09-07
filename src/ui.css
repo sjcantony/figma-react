@@ -1,0 +1,10 @@
+*{margin: 0;padding: 0;}
+h2 {border-bottom: 1px solid #000;padding: 10px 15px;}
+input {margin-top: 5px;border: 1px solid #000;padding: 10px 10px;}
+.downloadForm p {margin-top: 10px;}
+.downloadForm {margin: 30px 0 0 15px;}
+.btn {border-radius: 20px;margin-right: 10px;min-width: 150px}
+.primaryBtn {padding: 10px 15px;background: #000;color: #fff;border: 1px solid #000;}
+.secondaryBtn {padding: 10px 15px;background: #fff;color: #000;border: 1px solid #000;}
+.btnGroup {margin-top: 45px;}
+.downloadForm p span {float: left;width: 200px;margin-top: 15px;}
